@@ -1,10 +1,8 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addContact } from '../../redux/contactsSlice';
-import { getContacts } from '../../redux/selectors';
-import PropTypes from 'prop-types';
+import { selectContacts } from '../../redux/selectors';
+import { addContact } from '../../redux/operations';
 import { Formik, Field } from 'formik';
-import { nanoid } from '@reduxjs/toolkit';
 import * as Yup from 'yup';
 import 'yup-phone-lite';
 import {
@@ -20,16 +18,18 @@ const SubmitSchema = Yup.object().shape({
 });
 
 export function FormikForm() {
-  const contacts = useSelector(getContacts);
   const dispatch = useDispatch();
+  const contacts = useSelector(selectContacts);
 
-  const handleSubmit = newContact => {
-    const { name: newName } = newContact;
+  const handleSubmit = (values, { resetForm, setFieldError }) => {
+    const { name: newName } = values;
     let isContactExists = contacts.some(({ name }) => name === newName);
     if (isContactExists) {
-      return alert(`${newName} is already in contacts!`);
+      setFieldError('name', `${newName} is already in contacts!`);
+      return;
     }
-    dispatch(addContact(newContact));
+    dispatch(addContact(values));
+    resetForm();
   };
 
   return (
@@ -40,38 +40,24 @@ export function FormikForm() {
           number: '',
         }}
         validationSchema={SubmitSchema}
-        onSubmit={(values, { resetForm }) => {
-          handleSubmit({
-            ...values,
-            id: nanoid(8),
-          });
-          resetForm();
-        }}
+        onSubmit={handleSubmit}
       >
-        <FormWrapper>
-          <Label htmlFor="name">
-            Name:
-            <Field type="text" name="name" />
-          </Label>
-          <ErrorText name="name" component="span"></ErrorText>
-          <Label htmlFor="number">
-            Number:
-            <Field type="tel" name="number" />
-          </Label>
-          <ErrorText name="number" component="span"></ErrorText>
-          <AddContactButton type="submit">Add contact</AddContactButton>
-        </FormWrapper>
+        {formikProps => (
+          <FormWrapper>
+            <Label htmlFor="name">
+              Name:
+              <Field type="text" name="name" />
+            </Label>
+            <ErrorText name="name" component="span"></ErrorText>
+            <Label htmlFor="number">
+              Number:
+              <Field type="tel" name="number" />
+            </Label>
+            <ErrorText name="number" component="span"></ErrorText>
+            <AddContactButton type="submit">Add contact</AddContactButton>
+          </FormWrapper>
+        )}
       </Formik>
     </div>
   );
 }
-
-FormikForm.propTypes = {
-  contacts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
-    })
-  ),
-};

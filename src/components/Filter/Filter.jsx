@@ -1,17 +1,15 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setFilter } from '../../redux/filterSlice';
-import { getFilterValue } from '../../redux/selectors';
-import PropTypes from 'prop-types';
+import { selectFilterValue } from '../../redux/selectors';
+
 import { FilterWrapper, FilterInput } from './Filter.styled';
 
 export function Filter() {
-  const filter = useSelector(getFilterValue);
   const dispatch = useDispatch();
+  const filter = useSelector(selectFilterValue);
 
-  const onFilter = e => {
-    dispatch(setFilter(e.target.value));
-  };
+  const onFilter = e => dispatch(setFilter(e.target.value));
 
   return (
     <FilterWrapper>
@@ -20,7 +18,3 @@ export function Filter() {
     </FilterWrapper>
   );
 }
-
-Filter.propTypes = {
-  filter: PropTypes.string,
-};
